@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8fafc">
+  <title>중학교 국어 교과서 기반 문해력 진단</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #1e293b;
+      --green: #059669;
+      --blue: #2563eb;
+      --ink: #263445;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --paper: #fff;
+      --bg: #f8fafc;
+      --shadow: 0 16px 42px rgba(30, 41, 59, .08);
+    }
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--bg); scroll-behavior: smooth; }
+    body {
+      min-height: 100vh; margin: 0; color: var(--ink);
+      background: radial-gradient(circle at 8% 2%, rgba(5,150,105,.06), transparent 25rem),
+                  radial-gradient(circle at 96% 10%, rgba(37,99,235,.06), transparent 24rem), var(--bg);
+      font: 16px/1.65 Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      word-break: keep-all;
+    }
+    button { font: inherit; }
+    button:focus-visible, input:focus-visible + .option, summary:focus-visible {
+      outline: 3px solid rgba(37,99,235,.45); outline-offset: 3px;
+    }
+    .header, .shell { width: min(980px, calc(100% - 32px)); margin-inline: auto; }
+    .header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 0 16px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--navy); font-size: 15px; font-weight: 850; text-decoration: none; }
+    .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 13px; color: #fff; background: var(--green); }
+    .header-note { color: var(--muted); font-size: 12px; }
+    .shell { margin-bottom: 64px; }
+    .screen[hidden] { display: none !important; }
+    .screen { animation: fade .24s ease both; }
+    @keyframes fade { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+    .hero { padding: 38px 0 24px; text-align: center; }
+    .eyebrow { margin: 0 0 10px; color: var(--green); font-size: 12px; font-weight: 850; letter-spacing: .07em; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin: 0 auto 13px; color: var(--navy); font-size: clamp(29px, 5vw, 44px); line-height: 1.2; letter-spacing: -.045em; }
+    .hero-copy { max-width: 650px; margin: auto; color: var(--muted); }
+    .grade-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 28px 0 22px; }
+    .grade-card {
+      position: relative; display: flex; min-height: 230px; flex-direction: column; align-items: flex-start;
+      padding: 23px; overflow: hidden; border: 1px solid var(--line); border-radius: 21px;
+      background: var(--paper); box-shadow: 0 7px 24px rgba(30,41,59,.04); text-align: left; cursor: pointer;
+      transition: transform .18s, box-shadow .18s, border-color .18s;
+    }
+    .grade-card:hover { transform: translateY(-4px); border-color: rgba(5,150,105,.4); box-shadow: var(--shadow); }
+    .grade-number { display: grid; width: 46px; height: 46px; margin-bottom: 15px; place-items: center; border-radius: 14px; color: #047857; background: #ecfdf5; font-size: 21px; font-weight: 900; }
+    .grade-card:nth-child(2) .grade-number { color: var(--blue); background: #eff6ff; }
+    .grade-card:nth-child(3) .grade-number { color: #0e7490; background: #ecfeff; }
+    .grade-card strong { margin-bottom: 6px; color: var(--navy); font-size: 19px; }
+    .grade-focus { color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .start-label { margin-top: auto; padding-top: 15px; color: #047857; font-size: 13px; font-weight: 850; }
+    .grade-card:nth-child(2) .start-label { color: var(--blue); }
+    .grade-card:nth-child(3) .start-label { color: #0e7490; }
+    .notice { display: flex; gap: 11px; padding: 15px 17px; border: 1px solid #dbeafe; border-radius: 15px; color: #475569; background: #f1f7ff; font-size: 12px; line-height: 1.75; }
+    .notice p { margin: 0; }
+    .test-top, .card, .sidebar { border: 1px solid var(--line); border-radius: 20px; background: var(--paper); box-shadow: 0 7px 24px rgba(30,41,59,.04); }
+    .test-top { margin: 20px 0 17px; padding: 20px 22px; }
+    .test-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    .test-grade { display: flex; align-items: center; gap: 9px; color: var(--navy); font-weight: 850; }
+    .pill { padding: 4px 10px; border-radius: 999px; color: #047857; background: #ecfdf5; font-size: 11px; font-weight: 850; }
+    .test-meta { display: flex; gap: 15px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .timer { color: var(--navy); font-weight: 750; }
+    .progress { height: 8px; overflow: hidden; border-radius: 99px; background: #e8eef4; }
+    .progress-fill { width: 10%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--green), #34d399); transition: width .24s; }
+    .test-layout { display: grid; grid-template-columns: minmax(0,1fr) 205px; gap: 16px; align-items: start; }
+    .card { padding: clamp(19px, 4vw, 32px); }
+    .q-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .q-heading h2 { margin: 0; color: var(--navy); font-size: 21px; line-height: 1.4; }
+    .category-chip { flex: 0 0 auto; padding: 5px 9px; border-radius: 999px; color: #1d4ed8; background: #eff6ff; font-size: 10px; font-weight: 850; }
+    .passage-box { margin-bottom: 22px; padding: 18px 20px; border: 1px solid #e8edf2; border-left: 4px solid var(--green); border-radius: 13px; background: #fff; }
+    .passage-label { display: block; margin-bottom: 7px; color: #047857; font-size: 10px; font-weight: 900; letter-spacing: .08em; }
+    .passage { margin: 0; color: #334155; font-size: 14px; line-height: 1.85; white-space: pre-line; word-break: keep-all; }
+    .question-text { margin: 0 0 15px; color: var(--navy); font-size: 15px; font-weight: 750; line-height: 1.75; }
+    .options { display: grid; gap: 9px; margin: 0; padding: 0; border: 0; }
+    .option-label { display: block; cursor: pointer; }
+    .option-label input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .option {
+      display: flex; min-height: 51px; align-items: flex-start; gap: 11px; padding: 12px 14px;
+      border: 1px solid var(--line); border-radius: 12px; color: #475569; background: #fff; font-size: 13px; line-height: 1.65;
+      transition: border-color .15s, background .15s;
+    }
+    .option-label:hover .option { border-color: #94a3b8; background: #fbfdff; }
+    .option-letter { display: grid; width: 24px; height: 24px; flex: 0 0 auto; place-items: center; border: 1px solid #dbe2ea; border-radius: 50%; color: #64748b; background: #f8fafc; font-size: 11px; font-weight: 850; }
+    .option-label input:checked + .option { border-color: var(--green); color: #065f46; background: #f0fdf7; }
+    .option-label input:checked + .option .option-letter { border-color: var(--green); color: #fff; background: var(--green); }
+    .sidebar { padding: 16px; }
+    .sidebar h2 { margin: 0 0 3px; color: var(--navy); font-size: 14px; }
+    .sidebar p { margin: 0 0 12px; color: var(--muted); font-size: 11px; }
+    .question-map { display: grid; grid-template-columns: repeat(5,1fr); gap: 7px; }
+    .question-dot { width: 31px; height: 31px; border: 1px solid #dbe2ea; border-radius: 9px; color: #64748b; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .question-dot.is-current { border-color: var(--navy); color: #fff; background: var(--navy); }
+    .question-dot.is-answered:not(.is-current) { border-color: #a7f3d0; color: #047857; background: #ecfdf5; }
+    .legend { display: flex; gap: 10px; margin-top: 12px; color: var(--muted); font-size: 10px; }
+    .question-notice { display: none; margin-top: 15px; padding: 12px 14px; border: 1px solid #fcd9a6; border-radius: 11px; color: #92400e; background: #fffbeb; font-size: 12px; }
+    .question-notice.visible { display: block; animation: fade .18s ease both; }
+    .actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; }
+    .button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 7px; padding: 10px 16px; border: 1px solid transparent; border-radius: 11px; font-size: 13px; font-weight: 850; cursor: pointer; transition: transform .15s, background .15s; }
+    .button:hover:not(:disabled) { transform: translateY(-1px); }
+    .button:disabled { opacity: .45; cursor: not-allowed; }
+    .secondary { border-color: var(--line); color: var(--navy); background: #fff; }
+    .primary { color: #fff; background: var(--green); }
+    .primary:hover:not(:disabled) { background: #047857; }
+    .blue { color: #fff; background: var(--blue); }
+    .result-header { padding: 32px 0 18px; text-align: center; }
+    .result-header h1 { font-size: clamp(28px,4.5vw,38px); }
+    .result-header p:last-child { margin: 0; color: var(--muted); }
+    .result-card { margin-bottom: 16px; padding: clamp(19px,4vw,28px); }
+    .score-panel { display: grid; grid-template-columns: 155px minmax(0,1fr); gap: 22px; align-items: center; padding: 23px; border: 1px solid #d1fae5; border-radius: 18px; background: linear-gradient(120deg,#f0fdf7,#f7fbff); }
+    .score-circle { display: grid; width: 132px; height: 132px; place-items: center; justify-self: center; border: 8px solid #a7f3d0; border-radius: 50%; color: var(--navy); background: #fff; text-align: center; }
+    .score-number { display: block; font-size: 36px; font-weight: 950; line-height: 1; }
+    .score-unit { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; font-weight: 750; }
+    .score-copy .pill { display: inline-block; margin-bottom: 9px; }
+    .score-copy h2 { margin: 0 0 6px; color: var(--navy); font-size: 22px; }
+    .score-copy p { margin: 0; color: #526174; font-size: 13px; }
+    .score-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .meta-chip { padding: 5px 9px; border: 1px solid #dbe7e1; border-radius: 999px; color: #475569; background: #fff; font-size: 11px; font-weight: 750; }
+    .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-bottom: 17px; }
+    .section-heading h2 { margin: 0; color: var(--navy); font-size: 18px; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: 11px; }
+    .area-list { display: grid; gap: 17px; }
+    .area-row { display: grid; grid-template-columns: minmax(150px,220px) minmax(0,1fr) 78px; gap: 13px; align-items: center; }
+    .area-label strong { display: block; color: var(--navy); font-size: 12px; }
+    .area-label span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .bar-track { height: 11px; overflow: hidden; border-radius: 99px; background: #edf2f7; }
+    .bar-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--green),#34d399); transition: width .5s; }
+    .area-row:nth-child(2) .bar-fill { background: linear-gradient(90deg,#2563eb,#60a5fa); }
+    .area-row:nth-child(3) .bar-fill { background: linear-gradient(90deg,#0e7490,#22d3ee); }
+    .area-row:nth-child(4) .bar-fill { background: linear-gradient(90deg,#7c3aed,#a78bfa); }
+    .area-value { color: var(--navy); font-size: 12px; font-weight: 850; text-align: right; }
+    .feedback-box { padding: 17px 19px; border: 1px solid #bfdbfe; border-radius: 14px; background: #f3f8ff; }
+    .feedback-box h3 { margin: 0 0 6px; color: #1e3a8a; font-size: 14px; }
+    .feedback-box p { margin: 0; color: #475569; font-size: 13px; line-height: 1.75; }
+    .wrong-list { display: grid; gap: 9px; }
+    .wrong-item { overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: #fff; }
+    .wrong-item summary { display: flex; align-items: center; gap: 9px; padding: 14px 16px; color: var(--navy); font-size: 13px; font-weight: 850; cursor: pointer; list-style: none; }
+    .wrong-item summary::-webkit-details-marker { display: none; }
+    .wrong-item summary::after { margin-left: auto; color: var(--muted); content: "＋"; }
+    .wrong-item[open] summary::after { content: "－"; }
+    .review-tag { padding: 3px 8px; border-radius: 999px; color: #b91c1c; background: #fef2f2; font-size: 10px; }
+    .review-tag.unanswered { color: #b45309; background: #fffbeb; }
+    .review-content { padding: 0 16px 16px; border-top: 1px solid #f1f5f9; color: #475569; font-size: 12px; }
+    .review-content p { margin: 11px 0 0; }
+    .review-content strong { color: var(--navy); }
+    .explanation { padding: 11px 13px; border-radius: 10px; background: #f8fafc; line-height: 1.75; }
+    .all-correct { padding: 20px; border: 1px solid #a7f3d0; border-radius: 13px; color: #065f46; background: #ecfdf5; text-align: center; font-size: 13px; font-weight: 750; }
+    .result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin: 22px 0 4px; }
+    .footer-note { margin: 20px 0 0; color: #94a3b8; font-size: 10px; text-align: center; }
+    @media (max-width: 760px) {
+      .grade-grid { grid-template-columns: 1fr; gap: 10px; }
+      .grade-card { display: grid; min-height: 0; grid-template-columns: 50px minmax(0,1fr); column-gap: 13px; padding: 17px; }
+      .grade-number { grid-row: span 3; margin: 0; }
+      .grade-card strong { margin: 0 0 3px; font-size: 17px; }
+      .grade-focus { font-size: 12px; }
+      .start-label { padding-top: 8px; }
+      .test-layout { grid-template-columns: 1fr; }
+      .sidebar { order: -1; padding: 13px 15px; }
+      .question-map { grid-template-columns: repeat(10,1fr); }
+      .question-dot { width: 100%; }
+      .score-panel { grid-template-columns: 118px minmax(0,1fr); gap: 17px; padding: 18px; }
+      .score-circle { width: 108px; height: 108px; border-width: 7px; }
+      .score-number { font-size: 30px; }
+    }
+    @media (max-width: 520px) {
+      .header-note { max-width: 125px; font-size: 10px; text-align: right; }
+      .hero { padding-top: 25px; }
+      .hero-copy { font-size: 14px; }
+      .test-top { padding: 16px; }
+      .test-topline { align-items: flex-start; }
+      .test-grade { flex-wrap: wrap; gap: 6px; font-size: 14px; }
+      .test-meta { align-items: flex-end; flex-direction: column; gap: 1px; font-size: 11px; }
+      .q-heading { flex-direction: column; gap: 7px; }
+      .q-heading h2 { font-size: 19px; }
+      .passage-box { padding: 15px; }
+      .passage { font-size: 13px; }
+      .option { padding: 11px; font-size: 12px; }
+      .question-map { gap: 5px; }
+      .question-dot { height: 28px; border-radius: 7px; font-size: 10px; }
+      .button { min-height: 42px; padding: 9px 12px; font-size: 12px; }
+      .score-panel { grid-template-columns: 1fr; text-align: center; }
+      .score-meta { justify-content: center; }
+      .section-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .area-row { grid-template-columns: minmax(0,1fr) 60px; gap: 7px 10px; }
+      .area-label { grid-column: 1 / -1; }
+      .area-value { grid-column: 2; grid-row: 2; }
+      .bar-track { grid-column: 1; grid-row: 2; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="#" id="brandHome" aria-label="처음 화면으로">
+      <span class="brand-mark" aria-hidden="true">책</span><span>문해력 진단</span>
+    </a>
+    <span class="header-note">나의 읽기 힘을 차근차근 확인해요</span>
+  </header>
+
+  <main class="shell">
+    <section class="screen" id="homeScreen" aria-labelledby="mainTitle">
+      <div class="hero">
+        <p class="eyebrow">학년별 읽기 점검</p>
+        <h1 id="mainTitle">중학교 국어 교과서 기반 문해력 진단</h1>
+        <p class="hero-copy">어휘부터 비판적 읽기까지, 학년별 핵심 개념을 활용한 10문항으로 나의 읽기 습관을 점검해 보세요.</p>
+      </div>
+      <div class="grade-grid" aria-label="학년 선택">
+        <button class="grade-card" type="button" data-grade="1">
+          <span class="grade-number" aria-hidden="true">1</span><strong>중학교 1학년</strong>
+          <span class="grade-focus">어휘의 체계와 양상 · 요약하기와 중심 내용 파악</span>
+          <span class="start-label">테스트 시작 →</span>
+        </button>
+        <button class="grade-card" type="button" data-grade="2">
+          <span class="grade-number" aria-hidden="true">2</span><strong>중학교 2학년</strong>
+          <span class="grade-focus">설명 방법의 파악 · 매체 자료의 해석과 추론</span>
+          <span class="start-label">테스트 시작 →</span>
+        </button>
+        <button class="grade-card" type="button" data-grade="3">
+          <span class="grade-number" aria-hidden="true">3</span><strong>중학교 3학년</strong>
+          <span class="grade-focus">논증 방식의 이해 · 관점과 형식의 비교 및 비판적 읽기</span>
+          <span class="start-label">테스트 시작 →</span>
+        </button>
+      </div>
+      <aside class="notice">
+        <strong aria-hidden="true">ⓘ</strong>
+        <p>이 테스트는 2022 개정 국어과 교육과정의 어휘·읽기 관련 성취 요소를 바탕으로 직접 구성한 학습 점검용 문항입니다. 특정 출판사의 교과서 지문을 복제하지 않았으며, 공식 성취도 평가를 대신하지 않습니다.</p>
+      </aside>
+    </section>
+
+    <section class="screen" id="testScreen" hidden aria-labelledby="questionTitle">
+      <div class="test-top">
+        <div class="test-topline">
+          <div class="test-grade"><span class="pill" id="gradePill">중학교 1학년</span><span>문해력 진단</span></div>
+          <div class="test-meta"><span id="progressText">1 / 10</span><span class="timer">◷ <span id="timerText">00:00</span></span></div>
+        </div>
+        <div class="progress" id="progressTrack" role="progressbar" aria-label="테스트 진행률" aria-valuemin="0" aria-valuemax="10" aria-valuenow="1">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+      <div class="test-layout">
+        <article class="card">
+          <div class="q-heading"><h2 id="questionTitle">문항</h2><span class="category-chip" id="categoryChip">영역</span></div>
+          <div class="passage-box"><span class="passage-label">읽기 자료</span><p class="passage" id="passageText"></p></div>
+          <p class="question-text" id="questionText"></p>
+          <fieldset class="options" id="optionsList" aria-label="답을 선택하세요"></fieldset>
+          <div class="question-notice" id="questionNotice" role="status" aria-live="polite"></div>
+          <div class="actions">
+            <button class="button secondary" id="prevButton" type="button">← 이전 문제</button>
+            <button class="button primary" id="nextButton" type="button">다음 문제 →</button>
+          </div>
+        </article>
+        <aside class="sidebar" aria-label="문항 이동">
+          <h2>문항 바로가기</h2><p>답한 문항은 초록색으로 표시돼요.</p>
+          <div class="question-map" id="questionMap"></div>
+          <div class="legend" aria-hidden="true"><span>□ 미응답</span><span>▪ 응답</span></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="resultScreen" hidden aria-labelledby="resultTitle">
+      <div class="result-header">
+        <p class="eyebrow">진단 결과</p><h1 id="resultTitle">나의 문해력 리포트</h1><p id="resultSubtitle"></p>
+      </div>
+      <section class="card result-card" aria-label="총점과 등급">
+        <div class="score-panel">
+          <div class="score-circle" aria-label="점수"><div><span class="score-number" id="scoreNumber">0</span><span class="score-unit">점 / 100점</span></div></div>
+          <div class="score-copy">
+            <span class="pill" id="resultGradePill">중학교 1학년</span><h2 id="levelTitle"></h2><p id="levelDescription"></p>
+            <div class="score-meta"><span class="meta-chip" id="correctMeta"></span><span class="meta-chip" id="timeMeta"></span></div>
+          </div>
+        </div>
+      </section>
+      <section class="card result-card" aria-labelledby="areaTitle">
+        <div class="section-heading"><h2 id="areaTitle">영역별 분석</h2><p>각 영역에서 맞힌 문항의 비율이에요.</p></div>
+        <div class="area-list" id="areaList"></div>
+      </section>
+      <section class="card result-card" aria-labelledby="feedbackTitle">
+        <div class="section-heading"><h2 id="feedbackTitle">맞춤 학습 피드백</h2></div>
+        <div class="feedback-box"><h3 id="feedbackHeading"></h3><p id="feedbackText"></p></div>
+      </section>
+      <section class="card result-card" aria-labelledby="wrongTitle">
+        <div class="section-heading"><h2 id="wrongTitle">오답 노트</h2><p>문항을 눌러 내 답과 개념 해설을 확인하세요.</p></div>
+        <div class="wrong-list" id="wrongList"></div>
+      </section>
+      <div class="result-actions">
+        <button class="button secondary" id="homeButton" type="button">다른 학년 테스트하기</button>
+        <button class="button blue" id="retryButton" type="button">같은 학년 다시 풀기</button>
+      </div>
+      <p class="footer-note">결과는 학습을 위한 참고 자료이며, 실제 읽기 능력은 다양한 글과 상황에서 꾸준히 확인해 보세요.</p>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const categoryInfo = {
+      vocab: { label: "어휘·문법적 이해", description: "어휘의 체계, 단어의 의미 관계, 문맥적 의미" },
+      fact: { label: "사실적·구조적 독해", description: "중심 내용 요약, 글의 전개 방식 파악" },
+      infer: { label: "추론적 독해", description: "생략된 정보, 글쓴이의 의도와 맥락 파악" },
+      critical: { label: "비판적·논리적 독해", description: "논증 분석, 근거의 타당성과 신뢰성 평가" }
+    };
+
+    const questionBank = [
+      { id:"g1-01", grade:1, category:"vocab", textbookUnit:"1학년 어휘 - 고유어와 외래어",
+        passage:"학급 게시판에 다음 안내가 붙었다. “오늘의 일정은 앱에서 확인하고, 필요한 자료는 누리집에서 내려받으세요.”",
+        question:"밑줄 친 ‘앱’과 ‘누리집’에 대한 설명으로 가장 알맞은 것은?",
+        options:["‘앱’은 외래어이고, ‘누리집’은 고유어를 활용해 만든 말이다.","‘앱’과 ‘누리집’은 모두 한자어이다.","‘앱’은 고유어이고, ‘누리집’은 외래어이다.","두 말은 모두 의미가 없는 소리만으로 이루어져 있다."],
+        answer:0, explanation:"‘앱’은 영어 app에서 온 외래어이다. ‘누리집’은 ‘누리’와 ‘집’이라는 고유어를 결합해 만든 말로, 외래어 ‘홈페이지’를 대신해 쓰기도 한다." },
+      { id:"g1-02", grade:1, category:"vocab", textbookUnit:"1학년 어휘 - 동음이의어와 다의어",
+        passage:"나는 아침에 배를 먹었다. 점심에는 배를 타고 섬에 갔다. 운동을 마친 뒤에는 배가 고팠다.",
+        question:"세 문장에 쓰인 ‘배’의 의미 관계를 가장 알맞게 설명한 것은?",
+        options:["하나의 중심 의미가 여러 의미로 확장된 다의어이다.","서로 반대되는 뜻을 지닌 반의어이다.","소리와 형태는 같지만 서로 다른 뜻을 지닌 동음이의어이다.","뜻은 같고 소리만 다른 유의어이다."],
+        answer:2, explanation:"과일, 탈것, 신체 부위를 가리키는 ‘배’는 소리와 형태가 같지만 의미가 서로 다른 동음이의어의 예이다." },
+      { id:"g1-03", grade:1, category:"infer", textbookUnit:"1학년 읽기 - 예측하며 읽기",
+        passage:"도시의 나무는 여름에 그늘을 만들어 보행자가 받는 햇빛을 줄인다. 나뭇잎에서는 물이 수증기로 바뀌어 공기 중으로 나가기도 한다. 이 과정은 주변의 열을 낮추는 데 도움을 준다.",
+        question:"이 글의 제목이 ‘도시의 나무 한 그루가 바꾸는 여름’이라면, 이어질 내용으로 가장 적절한 것은?",
+        options:["나무의 나이테로 나이를 알아내는 방법","도시 나무가 주변의 더위를 줄이는 원리와 효과","가구를 만들 때 사용하는 목재의 종류","우리나라 산림의 계절별 색 변화"],
+        answer:1, explanation:"제목과 제시된 내용은 도시의 나무가 그늘과 증산 작용으로 더위를 줄이는 효과를 다룬다. 이어질 글도 이 원리나 도시에서의 효과를 설명할 가능성이 높다." },
+      { id:"g1-04", grade:1, category:"fact", textbookUnit:"1학년 읽기 - 중심 문장과 뒷받침 문장",
+        passage:"책을 읽을 때 메모를 하면 내용을 더 오래 기억할 수 있다. 중요한 낱말을 표시하면 글의 핵심이 눈에 잘 띈다. 모르는 내용을 질문으로 적어 두면 다음에 무엇을 확인할지도 알 수 있다. 자신의 말로 한 줄 요약을 남기는 방법도 도움이 된다.",
+        question:"이 문단의 중심 내용으로 가장 알맞은 것은?",
+        options:["읽을 때 메모하면 글의 핵심을 파악하고 기억하는 데 도움이 된다.","모르는 낱말은 반드시 사전에서 찾아야 한다.","책을 읽을 때는 긴 문장으로 메모해야 한다.","한 줄 요약은 질문보다 언제나 효과가 크다."],
+        answer:0, explanation:"첫 문장이 문단의 중심 내용을 제시하고, 뒤의 문장들은 표시하기, 질문 적기, 요약하기 등의 구체적인 방법을 뒷받침한다." },
+      { id:"g1-05", grade:1, category:"fact", textbookUnit:"1학년 읽기 - 글의 구조를 고려한 요약",
+        passage:"다회용 물병을 쓰면 음료를 살 때마다 생기는 일회용 컵을 줄일 수 있다. 물병을 오래 쓰면 새 용기를 만드는 데 필요한 자원도 아낄 수 있다. 물병을 씻어 다시 사용하는 습관은 쓰레기를 줄이는 데 도움이 된다.",
+        question:"이 글을 가장 적절하게 요약한 것은?",
+        options:["물병은 여러 색과 모양으로 만들 수 있다.","물병을 고를 때에는 크기와 무게를 함께 살펴야 한다.","일회용 컵은 음료를 살 때 주로 사용된다.","다회용 물병을 사용하면 자원과 쓰레기를 줄일 수 있다."],
+        answer:3, explanation:"세부 사례와 반복되는 내용을 묶어, 다회용 물병 사용이 자원 절약과 쓰레기 감소에 도움이 된다는 중심 내용을 남긴다." },
+      { id:"g1-06", grade:1, category:"fact", textbookUnit:"1학년 읽기 - 중심 문장과 뒷받침 문장",
+        passage:"태양광 전지는 빛에너지를 전기에너지로 바꾸는 장치이다. 햇빛이 전지에 닿으면 내부에서 전자의 움직임이 생겨 전류가 흐른다. 학교 옥상에 설치한 태양광 전지는 교실 조명에 필요한 전기의 일부를 공급할 수 있다.",
+        question:"이 문단에서 뒤의 두 문장이 첫 문장을 뒷받침하는 방식으로 알맞은 것은?",
+        options:["태양광 전지의 역사와 발명가를 소개한다.","에너지 전환 원리와 활용 사례를 들어 설명한다.","태양광 전지와 풍력 발전의 장단점을 비교한다.","태양광 전지에 대한 서로 다른 의견을 나열한다."],
+        answer:1, explanation:"첫 문장에서 태양광 전지를 정의한 뒤, 둘째 문장은 작동 원리를, 셋째 문장은 학교에서의 활용 사례를 들어 내용을 구체화한다." },
+      { id:"g1-07", grade:1, category:"fact", textbookUnit:"1학년 읽기 - 요약하기와 일반화",
+        passage:"민수는 양치할 때 컵을 사용해 물을 아꼈다. 지우는 사용하지 않는 방의 불을 껐다. 현우는 가까운 거리를 걸어서 이동했다. 세 사람은 각자 생활 속에서 에너지를 아끼는 행동을 실천했다.",
+        question:"이 글의 사례들을 하나의 문장으로 일반화한 것은?",
+        options:["양치할 때에는 반드시 컵을 써야 한다.","가까운 거리를 걸으면 항상 더 빠르게 도착한다.","작은 생활 습관의 실천은 에너지 절약에 보탬이 된다.","전기를 아끼는 일은 불을 끄는 것만으로 이루어진다."],
+        answer:2, explanation:"양치할 때 물 아끼기, 불 끄기, 걷기라는 여러 사례를 묶으면 생활 속 작은 실천이 자원과 에너지를 아끼는 데 도움이 된다는 내용으로 일반화할 수 있다." },
+      { id:"g1-08", grade:1, category:"infer", textbookUnit:"1학년 읽기 - 원인과 결과 추론",
+        passage:"비가 오지 않은 날이 이어진 뒤, 운동장 가장자리의 흙은 단단하게 굳어 있었다. 비가 내린 다음 날에는 같은 곳에 작은 물웅덩이가 오래 남았다. 흙 표면을 살펴보니 마른 흙이 빗물을 빠르게 받아들이지 못한 듯했다.",
+        question:"글에 직접 쓰여 있지는 않지만, 상황을 바탕으로 추론한 내용으로 가장 알맞은 것은?",
+        options:["흙이 건조하게 굳으면 빗물이 땅속으로 스며드는 속도가 느려질 수 있다.","운동장에는 비가 내리면 언제나 물웅덩이가 생긴다.","비가 오지 않으면 흙은 물을 더 많이 머금는다.","물웅덩이는 흙의 상태와 관계없이 같은 시간 동안 남는다."],
+        answer:0, explanation:"오랫동안 비가 오지 않아 굳은 흙이 빗물을 잘 흡수하지 못했고, 그 결과 물웅덩이가 오래 남았다고 추론할 수 있다." },
+      { id:"g1-09", grade:1, category:"vocab", textbookUnit:"1학년 어휘 - 문맥에 따른 단어의 의미",
+        passage:"“이 길은 폭이 넓어서 두 사람이 나란히 걸을 수 있어.”\n“친구의 사정을 들으니 마음이 넓은 사람이라는 생각이 들었어.”",
+        question:"두 문장의 ‘넓다’에 대한 설명으로 가장 알맞은 것은?",
+        options:["두 문장에서 모두 ‘폭이 크다’라는 뜻으로만 쓰였다.","서로 관련 없는 뜻을 가진 동음이의어이다.","공간의 폭에서 사람의 너그러움으로 의미가 확장된 다의어이다.","뜻이 반대인 두 단어가 함께 쓰였다."],
+        answer:2, explanation:"‘넓다’는 공간의 폭이 크다는 뜻에서 사람의 마음이 너그럽다는 뜻으로 확장되어 쓰였다. 서로 관련을 지닌 다의어의 예이다." },
+      { id:"g1-10", grade:1, category:"fact", textbookUnit:"1학년 읽기 - 삭제·선택·일반화·재구성",
+        passage:"학교 텃밭에는 상추, 토마토, 바질이 자란다. 상추는 잎을 따서 먹고, 토마토는 익은 열매를 먹는다. 바질은 향이 좋아 요리에 넣기도 한다. 학생들은 물 주기와 잡초 뽑기를 함께 맡는다.",
+        question:"이 글의 정보를 활용해 ‘학교 텃밭 활동’에 대한 요약문을 만들 때 가장 알맞은 것은?",
+        options:["상추는 잎을 먹고, 토마토는 열매를 먹으며, 바질은 향이 좋다.","학교 텃밭에서는 여러 작물을 함께 기르고 학생들이 돌봄을 나눈다.","바질을 요리에 넣으면 언제나 음식의 맛이 같아진다.","텃밭에서는 물 주기만 하면 모든 작물이 잘 자란다."],
+        answer:1, explanation:"작물별 세부 정보를 하나씩 나열하기보다, 여러 작물을 기르며 학생들이 함께 돌본다는 공통 내용을 묶어 재구성하는 것이 적절하다." },
+
+      { id:"g2-01", grade:2, category:"vocab", textbookUnit:"2학년 어휘 - 관용 표현의 문맥적 의미",
+        passage:"전학 온 수아는 다른 반 친구들도 많이 알고 있었다. 체육 대회 준비를 할 때 여러 반의 의견을 빠르게 모아 와서 모두가 놀랐다. 친구들은 수아에게 “정말 발이 넓구나.”라고 말했다.",
+        question:"이 문맥에서 ‘발이 넓다’의 의미로 가장 알맞은 것은?",
+        options:["신발의 크기가 다른 사람보다 크다.","멀리까지 빠르게 걸어갈 수 있다.","알고 지내는 사람이 많고 교류가 활발하다.","여러 일을 한꺼번에 맡아 바쁘게 움직인다."],
+        answer:2, explanation:"‘발이 넓다’는 관용 표현으로, 여러 사람과 알고 지내며 교류하는 범위가 넓다는 뜻이다. 실제 발의 크기를 말하는 것이 아니다." },
+      { id:"g2-02", grade:2, category:"vocab", textbookUnit:"2학년 어휘 - 어근과 접사로 새말 만들기",
+        passage:"온라인 공간에서 유용한 정보를 찾아 나누는 사람들을 ‘누리꾼’이라고 부르기도 한다. 이 말은 ‘누리’에 사람의 성격이나 자격을 나타내는 말을 만드는 ‘-꾼’이 더해진 것이다.",
+        question:"‘누리꾼’의 단어 형성 방식에 대한 설명으로 알맞은 것은?",
+        options:["두 어근이 합쳐져 새로운 단어가 되었다.","어근 ‘누리’에 접미사 ‘-꾼’이 붙어 새말이 만들어졌다.","접두사 ‘누리-’가 어근 뒤에 붙었다.","두 단어의 소리를 합쳐 뜻과 관계없이 만들었다."],
+        answer:1, explanation:"‘누리’는 중심 의미를 지닌 어근이고, ‘-꾼’은 사람을 나타내는 접미사이다. 어근에 접사가 붙어 새말이 만들어졌다." },
+      { id:"g2-03", grade:2, category:"fact", textbookUnit:"2학년 읽기 - 설명 방법: 정의",
+        passage:"생태 발자국은 한 사람이 생활하는 데 필요한 자원과 그 과정에서 생기는 쓰레기를 감당하기 위해 필요한 땅과 물의 양을 나타내는 개념이다. 이 수치를 살펴보면 생활 방식이 환경에 미치는 영향을 생각해 볼 수 있다.",
+        question:"첫 문장에서 사용한 설명 방법은 무엇인가?",
+        options:["개념의 뜻을 밝혀 설명하는 정의","두 대상의 공통점과 차이점을 나누어 설명하는 비교와 대조","구체적인 여러 대상을 기준에 따라 나누는 분류","사건이 일어난 시간의 순서에 따라 설명하는 과정"],
+        answer:0, explanation:"첫 문장은 ‘생태 발자국’이 무엇을 나타내는 개념인지 뜻을 밝혀 설명하므로 정의의 방법을 사용했다." },
+      { id:"g2-04", grade:2, category:"fact", textbookUnit:"2학년 읽기 - 설명 방법: 비교와 대조",
+        passage:"일회용 컵은 사용한 뒤 바로 버릴 수 있어 간편하지만, 사용 횟수가 늘면 쓰레기도 많아진다. 다회용 컵은 사용 뒤 씻어야 하는 수고가 있지만 여러 번 사용할 수 있어 일회용품 쓰레기를 줄이는 데 도움이 된다.",
+        question:"이 글의 설명 방법으로 가장 알맞은 것은?",
+        options:["컵이 만들어지는 순서를 시간에 따라 설명한다.","컵의 여러 종류를 소재에 따라 분류한다.","컵의 구조와 부분별 기능을 분석한다.","일회용 컵과 다회용 컵의 공통점과 차이점을 견주어 설명한다."],
+        answer:3, explanation:"두 종류의 컵을 쓰임과 장단점에 따라 함께 다루면서 차이점을 드러내므로 비교와 대조의 방법이다." },
+      { id:"g2-05", grade:2, category:"fact", textbookUnit:"2학년 읽기 - 설명 방법: 분류",
+        passage:"재활용품은 재질을 기준으로 나누어 배출할 수 있다. 종이류에는 신문과 상자가, 유리류에는 병이 포함된다. 플라스틱류는 용기와 포장재처럼 여러 형태로 나타난다.",
+        question:"이 글에서 재활용품을 나누는 기준은 무엇인가?",
+        options:["물건을 사용한 사람의 나이","물건을 이루는 재질","물건을 구입한 장소","물건을 사용한 횟수"],
+        answer:1, explanation:"글은 재활용품을 종이류, 유리류, 플라스틱류로 나누고 있다. 공통 기준은 각 물건을 이루는 재질이다." },
+      { id:"g2-06", grade:2, category:"fact", textbookUnit:"2학년 읽기 - 설명 방법: 인과",
+        passage:"도시의 땅이 아스팔트와 건물로 덮이면 빗물이 땅속으로 스며들기 어려워진다. 그 결과 빗물이 지표를 따라 빠르게 흐르고, 짧은 시간에 많은 비가 내릴 때에는 낮은 곳에 물이 고일 수 있다.",
+        question:"이 글의 전개 방식으로 알맞은 것은?",
+        options:["서로 다른 지역의 기후를 비교한다.","현상을 시간 순서에 따라 나열한다.","원인과 그로 인해 나타날 수 있는 결과를 설명한다.","도시의 시설을 종류별로 분류한다."],
+        answer:2, explanation:"불투수면이 늘어 빗물이 스며들기 어려워지는 것을 원인으로, 물이 빠르게 흐르고 고이는 것을 결과로 설명하고 있다." },
+      { id:"g2-07", grade:2, category:"infer", textbookUnit:"2학년 읽기 - 광고 매체의 표현과 의도",
+        passage:"한 학습 앱 광고에는 책상 앞에서 고민하는 학생의 사진과 함께 “오늘부터 10분, 공부 습관이 달라집니다!”라는 문구가 크게 적혀 있다. 아래쪽에는 “무료 체험 시작” 버튼이 눈에 띄는 색으로 배치되어 있다.",
+        question:"광고의 표현 방식을 고려할 때, 광고를 만든 주된 의도로 가장 적절한 것은?",
+        options:["학습 앱을 설치하거나 무료 체험을 시작하도록 권유하려는 것","학생들이 공부할 때 느끼는 감정을 객관적으로 조사하려는 것","앱 사용과 학습 습관 사이의 관계를 학술적으로 증명하려는 것","종이책과 디지털 자료의 역사를 설명하려는 것"],
+        answer:0, explanation:"변화를 약속하는 문구와 눈에 띄는 ‘무료 체험’ 버튼은 독자가 앱을 이용해 보도록 설득하는 광고 표현이다." },
+      { id:"g2-08", grade:2, category:"infer", textbookUnit:"2학년 읽기 - 카드뉴스의 시각 자료 해석",
+        passage:"카드뉴스에는 두 지역의 재활용률을 비교한 막대그래프가 실려 있다. 세로축은 65%에서 시작하고, 두 막대의 값은 각각 72%와 78%이다. 막대의 높이 차이는 실제 수치의 차이보다 훨씬 커 보인다.",
+        question:"세로축이 0%가 아닌 65%에서 시작할 때 생길 수 있는 효과는?",
+        options:["두 지역의 재활용률 차이가 사라져 보인다.","실제보다 두 지역의 차이가 크게 느껴질 수 있다.","각 지역의 재활용률을 정확히 알 수 없게 된다.","막대그래프가 두 지역의 원인을 설명하게 된다."],
+        answer:1, explanation:"세로축의 시작점을 높이면 작은 수치 차이도 시각적으로 크게 나타날 수 있다. 자료를 해석할 때 축의 범위를 함께 확인해야 한다." },
+      { id:"g2-09", grade:2, category:"critical", textbookUnit:"2학년 읽기 - 매체 정보의 근거와 신뢰성",
+        passage:"한 온라인 게시물은 “우리 학교 학생은 모두 종이책보다 전자책을 좋아한다.”라고 주장한다. 근거로 든 것은 게시물을 쓴 학생이 친한 친구 네 명에게 물어본 결과이다.",
+        question:"이 주장을 판단할 때 가장 먼저 살펴볼 점은?",
+        options:["게시물에 사용한 글자 색이 눈에 잘 띄는지","게시물의 문장이 짧고 기억하기 쉬운지","전자책이라는 낱말이 몇 번 나오는지","네 명의 응답만으로 전체 학생의 생각을 대표할 수 있는지"],
+        answer:3, explanation:"친한 친구 네 명의 응답은 전체 학생을 대표한다고 보기 어렵다. 표본의 수와 선정 방식이 주장에 맞는지 살펴야 한다." },
+      { id:"g2-10", grade:2, category:"fact", textbookUnit:"2학년 읽기 - 설명 방법: 분석",
+        passage:"자전거는 몸체, 바퀴, 페달, 체인 등으로 이루어진다. 페달을 밟으면 체인이 움직이고, 체인의 움직임이 바퀴에 전달되어 자전거가 앞으로 나아간다. 각 부분은 서로 연결되어 움직임을 만들어 낸다.",
+        question:"이 글에서 주로 사용한 설명 방법은?",
+        options:["하나의 대상을 시간의 순서로 나누어 살펴보는 과정","두 대상의 공통점만을 찾아 설명하는 유추","대상을 이루는 부분과 각 부분의 기능을 살펴보는 분석","대상의 뜻을 한 문장으로 밝혀 설명하는 정의"],
+        answer:2, explanation:"자전거를 여러 부분으로 나누어 각 부분의 기능과 관계를 설명하므로 분석의 방법을 사용했다." },
+
+      { id:"g3-01", grade:3, category:"vocab", textbookUnit:"3학년 어휘 - 지양과 지향",
+        passage:"학급 회의에서 한 학생이 말했다. “갈등을 피하려고 의견을 말하지 않는 태도는 지양하고, 서로의 생각을 존중하며 해결책을 찾는 태도를 지향해야 합니다.”",
+        question:"이 문맥에서 ‘지양하다’와 ‘지향하다’의 뜻을 바르게 설명한 것은?",
+        options:["지양하다: 적극적으로 추구하다 / 지향하다: 멀리하다","지양하다: 서로 비교하다 / 지향하다: 근거를 따지다","지양하다: 바람직하지 않은 것을 피하다 / 지향하다: 어떤 목표를 향하다","지양하다: 반드시 선택하다 / 지향하다: 선택을 미루다"],
+        answer:2, explanation:"‘지양하다’는 바람직하지 않은 것을 피하거나 줄인다는 뜻이고, ‘지향하다’는 어떤 목표를 향해 나아간다는 뜻이다." },
+      { id:"g3-02", grade:3, category:"vocab", textbookUnit:"3학년 어휘 - 귀납과 연역",
+        passage:"학생들은 서로 다른 세 종류의 종이에서 물방울이 흡수되는 모습을 관찰했다. 세 종이 모두 물을 흡수한다는 사실을 확인한 뒤, “종이는 물을 흡수하는 성질이 있다.”라고 결론을 내렸다.",
+        question:"이 결론에 이르는 사고 방식은 무엇인가?",
+        options:["일반 원칙을 먼저 세우고 개별 사례에 적용하는 연역","여러 구체적인 사례를 살펴 일반적인 결론을 이끌어 내는 귀납","서로 닮은 두 대상의 한 가지 특성을 빌려 추측하는 유추","주장과 관계없는 사례를 들어 결론을 피하는 방식"],
+        answer:1, explanation:"여러 종이를 관찰한 구체적인 사례에서 ‘종이는 물을 흡수한다’는 일반적인 결론을 이끌어 냈으므로 귀납적 사고이다." },
+      { id:"g3-03", grade:3, category:"critical", textbookUnit:"3학년 읽기 - 논증 방법: 유추",
+        passage:"우리 학교 도서관의 좌석 예약제를 더 편리하게 바꾸어야 한다. 다른 학교 도서관은 예약 화면을 간단히 바꾼 뒤 이용 학생의 만족도가 높아졌다. 두 도서관은 이용 시간과 학생 수가 비슷하므로, 우리 학교도 화면을 간단히 바꾸면 만족도가 높아질 수 있다.",
+        question:"이 글의 논증 방법으로 가장 알맞은 것은?",
+        options:["두 대상의 공통점을 근거로 한 대상의 결과를 다른 대상에도 적용하는 유추","여러 사례를 모아 일반적인 원리를 이끌어 내는 귀납","일반적인 원리를 제시하고 반드시 참인 결론을 도출하는 연역","주장과 무관한 감정 표현으로 독자의 동의를 구하는 방식"],
+        answer:0, explanation:"다른 학교의 사례를 우리 학교와 비교하고, 두 학교의 유사성을 바탕으로 비슷한 결과를 예상하고 있으므로 유추의 논증이다." },
+      { id:"g3-04", grade:3, category:"critical", textbookUnit:"3학년 읽기 - 주장과 근거의 타당성",
+        passage:"“우리 지역의 모든 청소년은 아침 운동을 원한다. 청소년 2,000명을 대상으로 조사했더니 20명이 아침 운동을 원한다고 답했다. 그러므로 학교는 모든 학생에게 아침 운동을 의무화해야 한다.”",
+        question:"이 글의 근거와 결론을 비판한 내용으로 가장 타당한 것은?",
+        options:["운동은 신체 활동이므로 어떤 근거도 필요하지 않다.","조사 결과를 제시했으므로 결론은 언제나 타당하다.","아침 운동의 효과가 언급되지 않았으므로 조사 대상은 중요하지 않다.","조사한 20명의 응답만으로 모든 청소년의 생각과 의무화의 필요성을 단정하기 어렵다."],
+        answer:3, explanation:"조사 대상 2,000명 가운데 응답한 20명만으로 전체 청소년의 생각을 일반화하기 어렵다. 또한 일부가 원한다는 사실만으로 모두에게 의무화해야 한다는 결론도 충분히 뒷받침되지 않는다." },
+      { id:"g3-05", grade:3, category:"critical", textbookUnit:"3학년 읽기 - 근거의 신뢰성과 공정성",
+        passage:"한 제품을 소개하는 글은 “이 제품을 사용한 사람의 95%가 만족했다.”라고 주장한다. 글 아래에는 조사 기관, 응답자 수, 질문 문항은 적혀 있지 않고, 제품을 판매하는 회사가 조사했다고만 쓰여 있다.",
+        question:"이 자료의 신뢰성을 평가하기 위해 가장 먼저 확인할 내용은?",
+        options:["제품 소개 글의 제목이 눈길을 끄는지","조사의 대상과 규모, 질문 방식 및 조사 주체가 구체적으로 밝혀졌는지","만족이라는 낱말이 글에 반복되어 있는지","제품 사진의 크기가 글자보다 큰지"],
+        answer:1, explanation:"만족도 수치만으로는 조사 결과를 검증하기 어렵다. 조사 대상과 규모, 질문 방식, 조사 주체와 이해관계를 확인해야 근거의 신뢰성을 판단할 수 있다." },
+      { id:"g3-06", grade:3, category:"critical", textbookUnit:"3학년 읽기 - 두 글의 관점 비교",
+        passage:"[가] 쉬는 시간의 휴대 전화 사용을 전면 금지하면 학생들이 친구와 대화하고 몸을 움직이는 시간이 늘어날 수 있다. 학교는 휴대 전화 없이도 즐길 수 있는 활동을 마련해야 한다.\n\n[나] 휴대 전화는 일정 확인이나 학습 자료 검색에도 쓰인다. 무조건 금지하기보다 수업 중 보관, 쉬는 시간 사용 약속처럼 책임 있게 쓰는 방법을 함께 가르쳐야 한다.",
+        question:"두 글의 관점 차이를 가장 정확하게 설명한 것은?",
+        options:["두 글 모두 휴대 전화 사용을 전면 금지해야 한다고 주장한다.","가 글은 휴대 전화의 편리함만 강조하고, 나 글은 휴대 전화의 위험만 강조한다.","가 글은 제한을 통해 대면 활동을 늘리려 하고, 나 글은 사용 규칙과 책임을 함께 강조한다.","가 글은 수업 시간만, 나 글은 가정에서의 사용만 다룬다."],
+        answer:2, explanation:"가 글은 쉬는 시간의 사용 제한과 대면 활동에 초점을 둔다. 나 글은 휴대 전화의 활용 가능성을 인정하며 규칙과 책임 있는 사용을 강조한다." },
+      { id:"g3-07", grade:3, category:"critical", textbookUnit:"3학년 읽기 - 글의 형식과 근거 비교",
+        passage:"[가] 공공 자전거 이용 기록을 분석한 보고서에 따르면, 자전거 도로가 연결된 구간에서는 이용 건수가 늘어나는 경향이 나타났다. 다만 날씨와 대여소 위치도 함께 고려해야 한다.\n\n[나] 나는 집 앞 자전거 도로가 끊겨 있어 자전거를 타다 몇 번이나 돌아가야 했다. 도로가 조금만 더 이어졌다면 가까운 곳에 갈 때 차 대신 자전거를 탔을 것이다.",
+        question:"두 글의 표현 방식과 근거를 비교한 내용으로 알맞은 것은?",
+        options:["가는 자료 분석을 제시하고 한계를 덧붙이며, 나는 개인 경험을 근거로 든다.","가는 개인 감정만 제시하고, 나는 여러 지역의 통계 자료를 분석한다.","두 글 모두 전문가의 실험 결과만으로 주장을 뒷받침한다.","나는 반대 사례를 제시하므로 자전거 도로가 필요 없다고 주장한다."],
+        answer:0, explanation:"가 글은 이용 기록과 고려할 변수를 들어 설명하고, 나 글은 자신의 경험을 근거로 제시한다. 같은 화제라도 근거와 형식이 다르다." },
+      { id:"g3-08", grade:3, category:"vocab", textbookUnit:"3학년 어휘 - 문맥 속 함의",
+        passage:"회의가 끝난 뒤에도 지민은 “다들 충분히 의견을 말했어.”라고만 했다. 친구는 지민의 짧은 대답에, 회의에서 말하지 못한 생각이 아직 남아 있다는 함의가 담겨 있을 수 있다고 보았다.",
+        question:"여기서 ‘함의’의 뜻으로 가장 알맞은 것은?",
+        options:["말이나 글에 겉으로 드러난 사전적 의미","말의 소리와 글자의 모양이 같은 현상","어떤 낱말이 다른 낱말과 반대되는 관계","직접 표현되지는 않았지만 말이나 글에 담겨 있는 뜻"],
+        answer:3, explanation:"‘함의’는 말이나 글에 직접 드러나 있지 않더라도 문맥과 상황을 통해 함께 담겨 있는 뜻을 가리킨다." },
+      { id:"g3-09", grade:3, category:"critical", textbookUnit:"3학년 읽기 - 근거의 관련성과 일반화",
+        passage:"“모든 학생에게 매일 같은 시간표를 적용해야 한다. 유명 운동선수 세 명도 규칙적인 생활로 성공했기 때문이다.”",
+        question:"주장과 근거의 관계를 비판한 내용으로 가장 적절한 것은?",
+        options:["운동선수의 사례를 들었으므로 모든 학생에게 적용할 수 있다.","소수 유명인의 사례만으로 모든 학생에게 같은 시간표가 적절하다고 일반화하기 어렵다.","시간표는 숫자로 나타낼 수 없으므로 근거가 될 수 없다.","규칙적인 생활은 주장과 아무 관계도 없으므로 반대 주장이 반드시 옳다."],
+        answer:1, explanation:"유명 운동선수 몇 명의 사례만으로 다양한 상황에 놓인 모든 학생에게 동일한 시간표가 적절하다고 결론 내리기는 어렵다. 근거가 주장을 충분히 뒷받침하는지 살펴야 한다." },
+      { id:"g3-10", grade:3, category:"vocab", textbookUnit:"3학년 어휘 - 역설적 표현의 효과",
+        passage:"학생회 게시판에는 “가장 시끄러운 침묵”이라는 제목의 글이 붙었다. 글쓴이는 회의에서 반대 의견이 있었지만 누구도 말하지 못했던 순간을 떠올리며, 그 침묵이 오히려 많은 것을 말해 주었다고 썼다.",
+        question:"‘가장 시끄러운 침묵’이라는 표현의 효과로 가장 적절한 것은?",
+        options:["회의 장소의 소음이 실제로 매우 컸음을 객관적으로 측정한다.","침묵은 아무 뜻도 없다는 사실을 강조한다.","겉으로는 모순되어 보이는 말을 통해 말하지 못한 의견과 억압된 분위기를 드러낸다.","회의 참석자들이 모두 같은 의견이었다는 점을 증명한다."],
+        answer:2, explanation:"‘시끄러운’과 ‘침묵’은 겉으로 모순되어 보인다. 이 역설적 표현은 아무도 말하지 않았지만 그 상황 자체가 많은 것을 드러냈다는 의미를 강조한다." }
+    ];
+
+    const gradeNames = { 1:"중학교 1학년", 2:"중학교 2학년", 3:"중학교 3학년" };
+    const gradeFocus = {
+      1:"어휘의 의미 관계와 글의 중심 내용을 파악하고, 핵심을 요약하는 연습을 이어 가 보세요.",
+      2:"설명 방법을 구별하고, 그래프·광고·게시물의 표현 의도와 근거를 함께 살펴보세요.",
+      3:"주장과 근거의 관계를 따져 보고, 서로 다른 글의 관점과 표현 방식을 비교해 보세요."
+    };
+    const categoryFeedback = {
+      vocab:"낱말의 뜻을 사전적 의미만으로 판단하지 말고, 앞뒤 문맥과 의미 관계를 함께 살펴보세요. 유의어·반의어·다의어·동음이의어와 접사·어근의 쓰임을 예문으로 정리하면 도움이 됩니다.",
+      fact:"문단마다 중심 문장을 찾고, 반복되는 세부 정보는 묶어 보세요. 정의·비교·분류·인과·분석 등 설명 방법의 단서를 표시하며 요약하면 글의 구조가 더 잘 보입니다.",
+      infer:"글에 직접 쓰인 정보와 내가 추론한 내용을 구분해 보세요. 제목, 생략된 정보, 그림·축·배치 같은 매체 표현이 독자에게 어떤 인상을 주는지도 확인해 보세요.",
+      critical:"주장에 맞는 근거인지, 근거가 충분하고 믿을 만한지 따져 보세요. 표본의 크기와 대표성, 출처와 이해관계, 다른 관점이 빠져 있지는 않은지도 점검해 보세요."
+    };
+
+    const state = {
+      grade:null, questions:[], answers:[], index:0, startedAt:0,
+      elapsedSeconds:0, timerId:null, submissionPrompt:false
+    };
+    const $ = (id) => document.getElementById(id);
+    const homeScreen = $("homeScreen");
+    const testScreen = $("testScreen");
+    const resultScreen = $("resultScreen");
+
+    document.querySelectorAll(".grade-card").forEach((button) => {
+      button.addEventListener("click", () => startTest(Number(button.dataset.grade)));
+    });
+    $("brandHome").addEventListener("click", (event) => {
+      event.preventDefault();
+      stopTimer();
+      showScreen(homeScreen);
+    });
+    $("prevButton").addEventListener("click", () => {
+      if (state.index > 0) { state.index -= 1; renderQuestion(); }
+    });
+    $("nextButton").addEventListener("click", () => {
+      if (state.index < state.questions.length - 1) {
+        state.index += 1;
+        state.submissionPrompt = false;
+        renderQuestion();
+        return;
+      }
+      const unanswered = state.answers.filter((answer) => answer === null).length;
+      if (unanswered > 0 && !state.submissionPrompt) {
+        state.submissionPrompt = true;
+        renderQuestion();
+        return;
+      }
+      showResults();
+    });
+    $("homeButton").addEventListener("click", () => {
+      stopTimer();
+      showScreen(homeScreen);
+    });
+    $("retryButton").addEventListener("click", () => {
+      if (state.grade !== null) startTest(state.grade);
+    });
+
+    function showScreen(target) {
+      [homeScreen, testScreen, resultScreen].forEach((screen) => { screen.hidden = screen !== target; });
+      target.classList.remove("screen");
+      void target.offsetWidth;
+      target.classList.add("screen");
+      window.scrollTo({ top:0, behavior:"smooth" });
+    }
+
+    function startTest(grade) {
+      state.grade = grade;
+      state.questions = questionBank.filter((question) => question.grade === grade);
+      state.answers = Array(state.questions.length).fill(null);
+      state.index = 0;
+      state.elapsedSeconds = 0;
+      state.submissionPrompt = false;
+      state.startedAt = Date.now();
+      $("gradePill").textContent = gradeNames[grade];
+      $("timerText").textContent = "00:00";
+      stopTimer();
+      state.timerId = window.setInterval(updateTimer, 1000);
+      showScreen(testScreen);
+      renderQuestion();
+    }
+
+    function stopTimer() {
+      if (state.timerId !== null) {
+        window.clearInterval(state.timerId);
+        state.timerId = null;
+      }
+    }
+
+    function updateTimer() {
+      if (!state.startedAt) return;
+      state.elapsedSeconds = Math.floor((Date.now() - state.startedAt) / 1000);
+      $("timerText").textContent = formatTime(state.elapsedSeconds);
+    }
+
+    function formatTime(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+      const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function renderQuestion() {
+      const question = state.questions[state.index];
+      const number = state.index + 1;
+      $("progressText").textContent = `${number} / ${state.questions.length}`;
+      $("progressFill").style.width = `${number / state.questions.length * 100}%`;
+      $("progressTrack").setAttribute("aria-valuenow", String(number));
+      $("questionTitle").textContent = `${number}번 문항`;
+      $("categoryChip").textContent = categoryInfo[question.category].label;
+      $("passageText").textContent = question.passage;
+      $("questionText").textContent = question.question;
+      $("optionsList").replaceChildren();
+
+      question.options.forEach((option, optionIndex) => {
+        const label = document.createElement("label");
+        label.className = "option-label";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "answer";
+        input.value = String(optionIndex);
+        input.checked = state.answers[state.index] === optionIndex;
+        input.setAttribute("aria-label", `${String.fromCharCode(65 + optionIndex)}. ${option}`);
+        const content = document.createElement("span");
+        content.className = "option";
+        const letter = document.createElement("span");
+        letter.className = "option-letter";
+        letter.setAttribute("aria-hidden", "true");
+        letter.textContent = String.fromCharCode(65 + optionIndex);
+        const text = document.createElement("span");
+        text.textContent = option;
+        content.append(letter, text);
+        label.append(input, content);
+        input.addEventListener("change", () => {
+          state.answers[state.index] = optionIndex;
+          state.submissionPrompt = false;
+          renderQuestionMap();
+          updateSubmitNotice();
+        });
+        $("optionsList").append(label);
+      });
+
+      $("prevButton").disabled = state.index === 0;
+      $("nextButton").textContent = state.index === state.questions.length - 1
+        ? (state.submissionPrompt ? "미응답 포함 결과 보기" : "결과 확인하기")
+        : "다음 문제 →";
+      renderQuestionMap();
+      updateSubmitNotice();
+    }
+
+    function renderQuestionMap() {
+      $("questionMap").replaceChildren();
+      state.questions.forEach((question, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "question-dot";
+        button.textContent = String(index + 1);
+        button.setAttribute("aria-label", `${index + 1}번 문항${state.answers[index] === null ? ", 미응답" : ", 응답함"}`);
+        if (index === state.index) {
+          button.classList.add("is-current");
+          button.setAttribute("aria-current", "step");
+        }
+        if (state.answers[index] !== null) button.classList.add("is-answered");
+        button.addEventListener("click", () => {
+          state.index = index;
+          state.submissionPrompt = false;
+          renderQuestion();
+        });
+        $("questionMap").append(button);
+      });
+    }
+
+    function updateSubmitNotice() {
+      const isLast = state.index === state.questions.length - 1;
+      const unanswered = state.answers.filter((answer) => answer === null).length;
+      const notice = $("questionNotice");
+      if (isLast && unanswered > 0 && state.submissionPrompt) {
+        notice.textContent = `아직 답하지 않은 문항이 ${unanswered}개 있어요. 계속하려면 ‘미응답 포함 결과 보기’를 다시 누르세요. 미응답은 오답으로 계산됩니다.`;
+        notice.classList.add("visible");
+        $("nextButton").textContent = "미응답 포함 결과 보기";
+      } else {
+        notice.textContent = "";
+        notice.classList.remove("visible");
+        if (isLast) $("nextButton").textContent = "결과 확인하기";
+      }
+    }
+
+    function showResults() {
+      updateTimer();
+      stopTimer();
+      const correctCount = state.questions.reduce((count, question, index) =>
+        count + (state.answers[index] === question.answer ? 1 : 0), 0);
+      const unanswered = state.answers.filter((answer) => answer === null).length;
+      const score = Math.round(correctCount / state.questions.length * 100);
+      $("resultSubtitle").textContent = `${gradeNames[state.grade]} · 총 ${state.questions.length}문항 진단 결과`;
+      $("resultGradePill").textContent = gradeNames[state.grade];
+      $("scoreNumber").textContent = String(score);
+      const level = getLevel(score);
+      $("levelTitle").textContent = level.title;
+      $("levelDescription").textContent = level.description;
+      $("correctMeta").textContent = `정답 ${correctCount} / ${state.questions.length}문항${unanswered ? ` · 미응답 ${unanswered}문항` : ""}`;
+      $("timeMeta").textContent = `소요 시간 ${formatTime(state.elapsedSeconds)}`;
+      renderAreaResults();
+      renderFeedback(correctCount);
+      renderWrongAnswers();
+      showScreen(resultScreen);
+    }
+
+    function getLevel(score) {
+      if (score >= 90) return {
+        title:"교과서 마스터",
+        description:"글의 핵심과 세부 개념을 안정적으로 연결하고 있어요. 다양한 관점의 글에서도 이 읽기 힘을 확장해 보세요."
+      };
+      if (score >= 70) return {
+        title:"탄탄한 독해가",
+        description:"기본적인 독해 전략을 잘 활용하고 있어요. 오답 노트에서 놓친 개념을 확인하면 더 깊이 읽을 수 있습니다."
+      };
+      return {
+        title:"기초 다지기 필요",
+        description:"괜찮아요. 틀린 문항의 해설을 읽고, 지문에서 답의 근거가 되는 표현을 다시 찾아보는 연습부터 시작해 보세요."
+      };
+    }
+
+    function getAreaScore(category) {
+      const indices = state.questions
+        .map((question, index) => question.category === category ? index : -1)
+        .filter((index) => index >= 0);
+      const correct = indices.filter((index) => state.answers[index] === state.questions[index].answer).length;
+      return { total:indices.length, correct, rate:indices.length ? Math.round(correct / indices.length * 100) : 0 };
+    }
+
+    function renderAreaResults() {
+      const list = $("areaList");
+      list.replaceChildren();
+      Object.entries(categoryInfo).forEach(([category, info]) => {
+        const score = getAreaScore(category);
+        const row = document.createElement("div");
+        row.className = "area-row";
+        const label = document.createElement("div");
+        label.className = "area-label";
+        const title = document.createElement("strong");
+        title.textContent = info.label;
+        const description = document.createElement("span");
+        description.textContent = info.description;
+        label.append(title, description);
+        const track = document.createElement("div");
+        track.className = "bar-track";
+        track.setAttribute("role", "img");
+        track.setAttribute("aria-label", `${info.label} 정답률 ${score.rate}%`);
+        const fill = document.createElement("div");
+        fill.className = "bar-fill";
+        fill.style.width = `${score.rate}%`;
+        track.append(fill);
+        const value = document.createElement("span");
+        value.className = "area-value";
+        value.textContent = score.total ? `${score.rate}% · ${score.correct}/${score.total}` : "문항 없음";
+        row.append(label, track, value);
+        list.append(row);
+      });
+    }
+
+    function renderFeedback(correctCount) {
+      const scored = Object.keys(categoryInfo)
+        .map((category) => ({ category, ...getAreaScore(category) }))
+        .filter((area) => area.total > 0);
+      const weakest = scored.reduce((low, area) => area.rate < low.rate ? area : low, scored[0]);
+      if (correctCount === state.questions.length) {
+        $("feedbackHeading").textContent = "모든 영역에서 정답을 맞혔어요!";
+        $("feedbackText").textContent = `${gradeFocus[state.grade]} 익숙한 문제 유형에 머물지 말고, 새로운 주제의 글에도 같은 전략을 적용해 보세요.`;
+      } else {
+        $("feedbackHeading").textContent = `먼저 살펴볼 영역: ${categoryInfo[weakest.category].label}`;
+        $("feedbackText").textContent = `${gradeFocus[state.grade]} ${categoryFeedback[weakest.category]} 오답 노트에서 문항별 핵심 개념도 확인해 보세요.`;
+      }
+    }
+
+    function renderWrongAnswers() {
+      const list = $("wrongList");
+      list.replaceChildren();
+      const wrong = state.questions
+        .map((question, index) => ({ question, index }))
+        .filter(({ question, index }) => state.answers[index] !== question.answer);
+      if (!wrong.length) {
+        const message = document.createElement("div");
+        message.className = "all-correct";
+        message.textContent = "모든 문항을 맞혔어요. 멋져요! 다른 주제의 글도 읽으며 실력을 넓혀 보세요.";
+        list.append(message);
+        return;
+      }
+      wrong.forEach(({ question, index }) => {
+        const details = document.createElement("details");
+        details.className = "wrong-item";
+        const summary = document.createElement("summary");
+        const title = document.createElement("span");
+        title.textContent = `${index + 1}번 · ${question.textbookUnit}`;
+        const tag = document.createElement("span");
+        tag.className = state.answers[index] === null ? "review-tag unanswered" : "review-tag";
+        tag.textContent = state.answers[index] === null ? "미응답" : "오답";
+        summary.append(title, tag);
+        const content = document.createElement("div");
+        content.className = "review-content";
+
+        const myAnswer = document.createElement("p");
+        const myLabel = document.createElement("strong");
+        myLabel.textContent = "내 답안: ";
+        myAnswer.append(myLabel, document.createTextNode(
+          state.answers[index] === null
+            ? "응답하지 않음"
+            : `${String.fromCharCode(65 + state.answers[index])}. ${question.options[state.answers[index]]}`
+        ));
+
+        const correct = document.createElement("p");
+        const correctLabel = document.createElement("strong");
+        correctLabel.textContent = "정답: ";
+        correct.append(correctLabel, document.createTextNode(
+          `${String.fromCharCode(65 + question.answer)}. ${question.options[question.answer]}`
+        ));
+
+        const explanation = document.createElement("p");
+        explanation.className = "explanation";
+        const explanationLabel = document.createElement("strong");
+        explanationLabel.textContent = "교과서 핵심 개념: ";
+        explanation.append(explanationLabel, document.createTextNode(question.explanation));
+
+        content.append(myAnswer, correct, explanation);
+        details.append(summary, content);
+        list.append(details);
+      });
+    }
+  </script>
+</body>
+</html>
